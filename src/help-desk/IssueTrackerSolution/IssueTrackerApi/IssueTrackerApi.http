@@ -5,6 +5,11 @@ Accept: application/json
 
 ###
 
+GET {{IssueTrackerApi_HostAddress}}/issues/fa2492f2-3eee-4ddb-8adc-ae9781f36661
+Accept: application/json
+
+###
+
 
 POST {{IssueTrackerApi_HostAddress}}/issues
 Content-Type: application/json
