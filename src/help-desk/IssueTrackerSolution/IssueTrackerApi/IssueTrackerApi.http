@@ -10,11 +10,16 @@ Accept: application/json
 
 ###
 
+GET {{IssueTrackerApi_HostAddress}}/issues?software=powerpoint
+Accept: application/json
+
+###
+
 
 POST {{IssueTrackerApi_HostAddress}}/issues
 Content-Type: application/json
 
 {
-  "software": "Excel",
+  "software": "Powerpoint",
   "description": "I want clippy back."
 }

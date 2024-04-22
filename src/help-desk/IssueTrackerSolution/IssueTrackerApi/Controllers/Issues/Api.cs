@@ -6,11 +6,20 @@ namespace IssueTrackerApi.Controllers.Issues;
 
 public class Api(IDocumentSession session) : ControllerBase
 {
-    // GET /issues
+
     [HttpGet("/issues")]
-    public async Task<ActionResult> GetTheIssuesAsync()
+    public async Task<ActionResult> GetTheIssuesAsync([FromQuery] string software = "all")
     {
-        var issues = await session.Query<Issue>().ToListAsync();
+        IReadOnlyList<Issue> issues;
+
+        if (software == "all")
+        {
+            issues = await session.Query<Issue>().ToListAsync();
+        }
+        else
+        {
+            issues = await session.Query<Issue>().Where(i => i.Software.Equals(software, StringComparison.InvariantCultureIgnoreCase)).ToListAsync();
+        }
 
         return Ok(issues);
     }
