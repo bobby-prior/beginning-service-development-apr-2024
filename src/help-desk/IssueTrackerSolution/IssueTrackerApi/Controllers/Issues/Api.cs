@@ -7,21 +7,20 @@ namespace IssueTrackerApi.Controllers.Issues;
 public class Api(IDocumentSession session) : ControllerBase
 {
 
+    // GET /issues
     [HttpGet("/issues")]
     public async Task<ActionResult> GetTheIssuesAsync([FromQuery] string software = "all")
     {
-        IReadOnlyList<Issue> issues;
-
         if (software == "all")
         {
-            issues = await session.Query<Issue>().ToListAsync();
+            var issues = await session.Query<Issue>().ToListAsync();
+            return Ok(issues);
         }
         else
         {
-            issues = await session.Query<Issue>().Where(i => i.Software.Equals(software, StringComparison.InvariantCultureIgnoreCase)).ToListAsync();
+            var issues = await session.Query<Issue>().Where(i => i.Software == software).ToListAsync();
+            return Ok(issues);
         }
-
-        return Ok(issues);
     }
 
     [HttpGet("/issues/{id:guid}")]
@@ -32,15 +31,18 @@ public class Api(IDocumentSession session) : ControllerBase
         if (issue is null)
         {
             return NotFound();
-        }
 
-        return Ok(issue);
+        }
+        else
+        {
+            return Ok(issue);
+        }
     }
 
     [HttpPost("/issues")]
     public async Task<ActionResult> AddIssueAsync(
-        [FromBody] CreateIssueRequestModel request,
-        [FromServices] IValidator<CreateIssueRequestModel> validator)
+       [FromBody] CreateIssueRequestModel request,
+       [FromServices] IValidator<CreateIssueRequestModel> validator)
     {
         var results = await validator.ValidateAsync(request);
         if (results.IsValid)
@@ -53,17 +55,32 @@ public class Api(IDocumentSession session) : ControllerBase
                 Id = Guid.NewGuid(),
                 Status = IssueStatus.Created
             };
-
+            // do our thing.
             session.Store(response);
             await session.SaveChangesAsync();
-
             return Ok(response);
         }
-
-        return BadRequest(results.ToDictionary());
+        else
+        {
+            return BadRequest(results.ToDictionary()); // 400
+        }
 
     }
 }
+
+/*
+ * {
+  "software": "Excel",
+  "description": "I want clippy back"
+} */
+
+public record CreateIssueRequestModel
+{
+
+    public string Software { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
+
 
 public record Issue
 {
@@ -72,23 +89,14 @@ public record Issue
     public string Software { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public IssueStatus Status { get; set; }
+
 }
 
-public enum IssueStatus
-{
-    Created
-}
-
-public record CreateIssueRequestModel
-{
-    public string Software { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-}
+public enum IssueStatus { Created }
 
 public class CreateIssueRequestModelValidator : AbstractValidator<CreateIssueRequestModel>
 {
     private readonly IReadOnlyList<string> _supportedSoftware = ["excel", "powerpoint", "word"];
-
     public CreateIssueRequestModelValidator()
     {
         RuleFor(i => i.Description)
@@ -99,8 +107,10 @@ public class CreateIssueRequestModelValidator : AbstractValidator<CreateIssueReq
             .NotEmpty()
             .Must(i =>
             {
-                return _supportedSoftware.Any(s => s.Equals(i, StringComparison.InvariantCultureIgnoreCase));
-            })
-            .WithMessage("Unsupported Software. Good Luck!");
+                var sw = i.ToLowerInvariant().Trim();
+                return _supportedSoftware.Any(s => s == sw);
+
+            }).WithMessage("Unsupported Software. Good Luck");
+
     }
 }

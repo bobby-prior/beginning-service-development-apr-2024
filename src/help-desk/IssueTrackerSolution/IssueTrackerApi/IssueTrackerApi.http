@@ -5,21 +5,21 @@ Accept: application/json
 
 ###
 
-GET {{IssueTrackerApi_HostAddress}}/issues/fa2492f2-3eee-4ddb-8adc-ae9781f36661
+
+GET {{IssueTrackerApi_HostAddress}}/issues?software=Notepad
 Accept: application/json
 
 ###
-
-GET {{IssueTrackerApi_HostAddress}}/issues?software=powerpoint
-Accept: application/json
-
-###
-
 
 POST {{IssueTrackerApi_HostAddress}}/issues
 Content-Type: application/json
 
 {
   "software": "Powerpoint",
-  "description": "I want clippy back."
+  "description": "How do I make them less boring?"
 }
+
+###
+
+GET {{IssueTrackerApi_HostAddress}}/issues/2cee9c32-a7ef-4e12-9ca5-36173dc3d4ea
+Accept: application/json
